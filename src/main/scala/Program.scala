@@ -21,19 +21,10 @@ object Program extends App {
   logger.info("Logging in with user {}", config.getString("mikrotik.user"))
   api.login(config.getString("mikrotik.user"), config.getString("mikrotik.password"))
 
-  def removeList(name: String) = {
-    val result = api.execute(s"/ip/firewall/address-list/print where list=$name return .id").asScala
-
-    if(result.length > 0) {
-      val ids = result.map(_.apply(".id")).mkString(",")
-      api.execute(s"/ip/firewall/address-list/remove numbers=$ids")
-    }
-  }
-
   def updateList(sources: Seq[Uri], name: String) = {
     logger.info("Updating list {} with {} sources", name, sources.length)
 
-    val ips = sources.flatMap(src => {
+    val ipsFromFile = sources.flatMap(src => {
       logger.info("Fetching list from {}", src)
       val request = basicRequest.get(src)
 
@@ -53,19 +44,29 @@ object Program extends App {
 
     def range(i: Int, min: Int, max: Int) = i <= max && i >= min
 
-    val usableIPs = ips.map {
+    val usableIPs = ipsFromFile.map {
       case ip if ip.startsWith("10.") => "#"
       case ip if ip.startsWith("172.") && range(ip.split('.').apply(1).toInt, 16, 31) => "#"
       case ip if ip.startsWith("192.168.") => "#"
       case ip => ip
     }.filterNot(_.contains("#")).distinct
 
-    logger.info("Clearing list {}", name)
-    removeList(name)
+    val result = api.execute(s"/ip/firewall/address-list/print where list=$name return address, .id").asScala.toSeq
+    val usedIPs = result.map(_.get("address"))
 
-    logger.info("Adding {} IPs to list {}", usableIPs.length, name)
-    val commands = usableIPs.map(ip => s"/ip/firewall/address-list/add list=$name address=\"$ip\"")
-    commands.foreach(api.execute)
+    val toAdd = usableIPs.diff(usedIPs)
+    val toRemove = usedIPs.diff(usableIPs)
+
+    logger.info("Removing {} IPs from list {}", toRemove.length, name)
+
+    val toRemoveIds = toRemove.map(tr => result.find(_.get("address") == tr).get.get(".id"))
+
+    if(toRemoveIds.nonEmpty) {
+      api.execute(s"/ip/firewall/address-list/remove numbers=${toRemoveIds.mkString(",")}")
+    }
+
+    logger.info("Adding {} IPs to list {}", toAdd.length, name)
+    toAdd.foreach(ip => api.execute(s"/ip/firewall/address-list/add list=$name address=\"$ip\""))
   }
 
   val lists = config.getConfigList("lists")
