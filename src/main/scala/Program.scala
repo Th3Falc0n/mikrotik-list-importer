@@ -24,7 +24,9 @@ object Program extends App {
   def updateList(sources: Seq[Uri], name: String) = {
     logger.info("Updating list {} with {} sources", name, sources.length)
 
-    val ipsFromFile = sources.flatMap(src => {
+    val netsFromFile = sources.flatMap(src => {
+      def range(i: Int, min: Int, max: Int) = i <= max && i >= min
+
       logger.info("Fetching list from {}", src)
       val request = basicRequest.get(src)
 
@@ -35,27 +37,28 @@ object Program extends App {
         .body.getOrElse("")
         .split("\n")
         .filter(_.nonEmpty)
-        .filter(k => "0123456789".contains(k.head))
         .map(_.split(' ').head)
+        .filter(ip => "^[0-9][0123456789.\\/]*$".r.matches(ip))
+        .map {
+          case ip if ip.startsWith("10.") => "#"
+          case ip if ip.startsWith("172.") && range(ip.split('.').apply(1).toInt, 16, 31) => "#"
+          case ip if ip.startsWith("192.168.") => "#"
+          case ip => ip
+        }
 
       logger.info("Got {} IPs from {}", ips.length, src)
       ips
-    })
+    }).distinct
 
-    def range(i: Int, min: Int, max: Int) = i <= max && i >= min
+    logger.info("Got {} unique IPs", netsFromFile.length)
 
-    val usableIPs = ipsFromFile.map {
-      case ip if ip.startsWith("10.") => "#"
-      case ip if ip.startsWith("172.") && range(ip.split('.').apply(1).toInt, 16, 31) => "#"
-      case ip if ip.startsWith("192.168.") => "#"
-      case ip => ip
-    }.filterNot(_.contains("#")).distinct
+    val listIPs = netsFromFile
 
     val result = api.execute(s"/ip/firewall/address-list/print where list=$name return address, .id").asScala.toSeq
     val usedIPs = result.map(_.get("address"))
 
-    val toAdd = usableIPs.diff(usedIPs)
-    val toRemove = usedIPs.diff(usableIPs)
+    val toAdd = listIPs.diff(usedIPs)
+    val toRemove = usedIPs.diff(listIPs)
 
     logger.info("Removing {} IPs from list {}", toRemove.length, name)
 
