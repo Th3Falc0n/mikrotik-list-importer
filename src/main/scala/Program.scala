@@ -24,7 +24,7 @@ object Program extends App {
   def updateList(sources: Seq[Uri], name: String) = {
     logger.info("Updating list {} with {} sources", name, sources.length)
 
-    val netsFromFile = sources.flatMap(src => {
+    val rawFromFile = sources.flatMap(src => {
       def range(i: Int, min: Int, max: Int) = i <= max && i >= min
 
       logger.info("Fetching list from {}", src)
@@ -50,9 +50,11 @@ object Program extends App {
       ips
     }).distinct
 
-    logger.info("Got {} unique IPs", netsFromFile.length)
+    logger.info("Got {} unique IPs", rawFromFile.length)
+    val ipsFromFile = IPMerger.fromStrings(rawFromFile)
+    val listIPs = IPMerger.mergeIPs(ipsFromFile).map(_.toString)
 
-    val listIPs = netsFromFile
+    logger.info("Reduced to {} unique Subnets", listIPs.length)
 
     val result = api.execute(s"/ip/firewall/address-list/print where list=$name return address, .id").asScala.toSeq
     val usedIPs = result.map(_.get("address"))
