@@ -1,7 +1,7 @@
 package de.th3falc0n.mkts
 
 import cats.effect.IO
-import de.th3falc0n.mkts.Models.{AddressList, AddressListName}
+import de.th3falc0n.mkts.Models.{AddressList, AddressSourceName}
 import japgolly.scalajs.react
 import japgolly.scalajs.react.ScalaComponent
 import japgolly.scalajs.react.ScalaComponent.BackendScope
@@ -10,40 +10,23 @@ import japgolly.scalajs.react.vdom.VdomElement
 import japgolly.scalajs.react.vdom.html_<^._
 import org.scalajs.dom.html
 
-import scala.concurrent.duration._
+object AddressListPanelComponent {
+  case class Props(addressList: AddressList,
+                   onChange: IO[Unit])
 
-object MainComponent {
-  case class Props()
-
-  case class State(
-                    entries: Option[Seq[AddressList]],
-                    active: Option[AddressListName],
-                  )
+  case class State(active: Option[AddressSourceName])
 
   object State {
-    val empty: State = State(None, None)
+    val empty: State = State(None)
   }
 
   class Backend($: BackendScope[Props, State]) {
-    private def fetchState: IO[Unit] =
-      for {
-        entries <- Api.lists
-        _ <- $.modStateAsync(_.copy(entries = Some(entries)))
-      } yield ()
-
-    def componentDidMount: IO[Unit] = {
-      lazy val tick: IO[Unit] =
-        fetchState >>
-          tick.delayBy(8.seconds)
-
-      tick
-    }
-
     def render: VdomElement = {
+      val props = $.props.unsafeRunSync()
       val state = $.state.unsafeRunSync()
 
       <.div(
-        ^.cls := "my-4 d-flex flex-row",
+        ^.cls := "d-flex flex-row",
         <.div(
           ^.cls := "d-flex flex-column px-2",
           <.div(^.cls := "list-group",
@@ -51,9 +34,9 @@ object MainComponent {
               ^.onClick --> {
                 $.modStateAsync(_.copy(active = None))
               },
-              <.h5(^.cls := "mb-1", "Global")
+              <.h5(^.cls := "mb-1", "All")
             ),
-            state.entries.getOrElse(Seq.empty).toVdomArray(entry =>
+            props.addressList.sources.toVdomArray(entry =>
               <.a(^.href := "#", ^.cls := s"list-group-item list-group-item-action pe-2 ${if (state.active.contains(entry.name)) "active" else ""}",
                 ^.onClick --> {
                   $.modStateAsync(_.copy(active = Some(entry.name)))
@@ -64,8 +47,8 @@ object MainComponent {
                   <.i(^.cls := "bi bi-trash-fill"),
                   ^.onClick ==> { e =>
                     e.stopPropagation()
-                    Api.deleteList(entry.name) >>
-                      fetchState
+                    //Api.deleteList(entry.name) >>
+                    props.onChange
                   }
                 )
               )
@@ -82,8 +65,8 @@ object MainComponent {
                     case Some(input) =>
                       val value = input.value
                       input.value = ""
-                      Api.putList(AddressList(AddressListName(value), Seq.empty, 10.minutes)) >>
-                        fetchState
+                      //Api.putList(AddressList(AddressListName(value), Seq.empty, 10.minutes)) >>
+                      props.onChange
                   }
                 }
               )
@@ -92,16 +75,10 @@ object MainComponent {
         ),
         <.div(
           ^.cls := "d-flex flex-column flex-fill",
-          state.active.flatMap(e => state.entries.flatMap(_.find(_.name == e))) match {
-            case Some(activeEntry) =>
-              AddressListPanelComponent.Component(AddressListPanelComponent.Props(
-                activeEntry,
-                fetchState,
-              ))
-
-            case None =>
-              GlobalConfigComponent.Component(GlobalConfigComponent.Props())
-          }
+          IpListComponent.Component(IpListComponent.Props(
+            props.addressList,
+            state.active.flatMap(e => props.addressList.sources.find(_.name == e))
+          ))
         )
       )
     }
@@ -112,6 +89,5 @@ object MainComponent {
       .initialState(State.empty)
       .backend(new Backend(_))
       .render(_.backend.render)
-      .componentDidMount(_.backend.componentDidMount)
       .build
 }

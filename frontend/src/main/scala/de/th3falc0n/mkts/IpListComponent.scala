@@ -13,7 +13,8 @@ import org.scalajs.dom.html.TableCell
 import scala.concurrent.duration._
 
 object IpListComponent {
-  case class Props(selected: (AddressList, Option[AddressSource]))
+  case class Props(selectedAddressList: AddressList,
+                   selectedAddressSource: Option[AddressSource])
 
   case class State(
                     entries: Option[Seq[IpEntry]],
@@ -28,7 +29,7 @@ object IpListComponent {
     private def fetchState: IO[Unit] =
       for {
         props <- $.props.to[IO]
-        entries <- Api.entries(props.selected._1.name, props.selected._2.map(_.name))
+        entries <- Api.entries(props.selectedAddressList.name, props.selectedAddressSource.map(_.name))
         _ <- $.modStateAsync(_.copy(entries = Some(entries)))
       } yield ()
 
