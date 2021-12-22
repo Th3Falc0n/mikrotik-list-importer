@@ -4,12 +4,12 @@ import cats.data.Kleisli
 import cats.effect.IO
 import cats.syntax.option._
 import de.lolhens.http4s.spa._
-import de.th3falc0n.mkts.Models.{AddressList, AddressListName, IpEntry}
+import de.th3falc0n.mkts.Models.{ AddressListName, AddressSource, AddressSourceName, AddressList, IpEntry }
 import de.th3falc0n.mkts.repo.AddressListRepo
 import org.http4s.server.Router
 import org.http4s.server.middleware.GZip
 import org.http4s.server.staticcontent.ResourceServiceBuilder
-import org.http4s.{HttpRoutes, Uri}
+import org.http4s.{ HttpRoutes, Uri }
 
 import scala.util.chaining._
 
@@ -44,11 +44,11 @@ class UiRoutes(addressListRepo: AddressListRepo[IO]) {
           } yield
             response
 
-        case request@DELETE -> Root / "lists" =>
+        case request@DELETE -> Root / "lists" / addressListNameString =>
+          val addressListName = AddressListName(addressListNameString)
           import org.http4s.circe.CirceEntityCodec._
           for {
-            listName <- request.as[AddressListName]
-            _ <- addressListRepo.delete(listName)
+            _ <- addressListRepo.delete(addressListName)
             response <- Ok(())
           } yield
             response
@@ -64,6 +64,25 @@ class UiRoutes(addressListRepo: AddressListRepo[IO]) {
 
         case request@GET -> Root / "lists" / addressListNameString / "entries" =>
           val addressListName = AddressListName(addressListNameString)
+          import org.http4s.circe.CirceEntityCodec._
+          for {
+            //entries <- request.as[(AddressListName, Option[AddressSource])]
+            response <- Ok(Seq.empty[IpEntry])
+          } yield
+            response
+
+        case request@GET -> Root / "lists" / addressListNameString / "sources" =>
+          val addressListName = AddressListName(addressListNameString)
+          import org.http4s.circe.CirceEntityCodec._
+          for {
+            //entries <- request.as[(AddressListName, Option[AddressSource])]
+            response <- Ok(Seq.empty[AddressSource])
+          } yield
+            response
+
+        case request@GET -> Root / "lists" / addressListNameString / "sources" / addressSourceNameString / "entries" =>
+          val addressListName = AddressListName(addressListNameString)
+          val addressSourceName = AddressSourceName(addressSourceNameString)
           import org.http4s.circe.CirceEntityCodec._
           for {
             //entries <- request.as[(AddressListName, Option[AddressSource])]
