@@ -1,0 +1,9 @@
+[Unit]
+Description=Imports IP lists into mikrotik routers
+
+[Service]
+Type=simple
+ExecStart=scala -Dconfig.file=/opt/mkts/application.conf /opt/mkts/mkts.jar
+
+[Install]
+WantedBy=multi-user.target
