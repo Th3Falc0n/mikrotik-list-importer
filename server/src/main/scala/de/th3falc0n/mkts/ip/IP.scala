@@ -1,7 +1,13 @@
 package de.th3falc0n.mkts.ip
 
+import org.slf4j.LoggerFactory
+
 object IP {
-  def fromString(ipString: String) = {
+  private val logger = LoggerFactory.getLogger("IP")
+
+  def fromString(ipString: String): IP = {
+    logger.debug("IP.fromString({})", ipString)
+
     val parts = ipString.split('/')
     val host = parts(0)
     val netmask = if (parts.length == 2) parts(1) else "32"
@@ -11,9 +17,9 @@ object IP {
 }
 
 case class IP(host: Int, maskBits: Int) {
-  def isNetwork = (host & (0xFFFFFFFF << (32 - maskBits))) == host
+  def isNetwork: Boolean = (host & (0xFFFFFFFF << (32 - maskBits))) == host
 
-  def nextTwoSubs = {
+  def nextTwoSubs: Seq[IP] = {
     val subnet = host & (0xFFFFFFFF << (32 - maskBits))
     val a = subnet
     val b = a + (1 << (31 - maskBits))
@@ -34,7 +40,7 @@ case class IP(host: Int, maskBits: Int) {
     val c = host >> 8 & 0xFF
     val d = host & 0xFF
     if (maskBits < 32) {
-      s"$a.$b.$c.$d/${maskBits}"
+      s"$a.$b.$c.$d/$maskBits"
     } else {
       s"$a.$b.$c.$d"
     }

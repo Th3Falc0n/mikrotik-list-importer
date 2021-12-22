@@ -1,34 +1,43 @@
 package de.th3falc0n.mkts
 
+import com.typesafe.config.Config
 import de.th3falc0n.mkts.Main.config
 import de.th3falc0n.mkts.backend.MikrotikConnection
 import de.th3falc0n.mkts.ip.IPMerger
-import de.th3falc0n.mkts.lists.{HttpIPSource, IPSource}
+import de.th3falc0n.mkts.lists.{ HttpIPSource, IPSource }
 import org.slf4j.LoggerFactory
 
-import java.util.concurrent.Executors
+import java.lang.System.Logger
+import java.util.concurrent.{ Executors, TimeUnit }
 import scala.jdk.CollectionConverters._
 
 class IPUpdateListTask(val name: String, val sources: Seq[IPSource]) {
   private val logger = LoggerFactory.getLogger("IPUpdateListTask-" + name)
 
-  def update = {
-    logger.info("Updating list {} with {} sources", name, sources.length)
-    val ips = sources.flatMap(_.fetch)
+  def update(): Unit = {
+    try {
+      logger.info("Updating list {} with {} sources", name, sources.length)
+      val ips = sources.flatMap(_.fetch)
 
-    logger.info("Got {} unique IPs", ips.length)
-    val merged = IPMerger.mergeIPs(ips)
+      logger.info("Got {} unique IPs", ips.length)
+      val merged = IPMerger.mergeIPs(ips)
 
-    logger.info("Reduced to {} unique list entries", merged.length)
-    MikrotikConnection.updateList(name, merged)
+      logger.info("Reduced to {} unique list entries", merged.length)
+      MikrotikConnection.updateList(name, merged)
+
+      logger.info("Updated list {} with {} unique IPs", name, merged.length)
+    }
+    catch {
+      case e: Exception => logger.error("Error updating list {}", name, e)
+    }
   }
 }
 
 object TaskScheduler {
   private val logger = LoggerFactory.getLogger(this.getClass)
-  val scheduler = Executors.newScheduledThreadPool(1)
+  private val scheduler = Executors.newScheduledThreadPool(1)
 
-  def initialize = {
+  def initialize(): Unit = {
 
     val lists = config.getConfigList("lists")
 
@@ -41,7 +50,7 @@ object TaskScheduler {
 
       val updateTask = new IPUpdateListTask(name, sources)
 
-      scheduler.scheduleAtFixedRate(() => updateTask.update, 0, interval.toMillis, java.util.concurrent.TimeUnit.MILLISECONDS)
+      scheduler.scheduleAtFixedRate(() => updateTask.update(), 0, interval.toMillis, TimeUnit.MILLISECONDS)
     })
   }
 }
