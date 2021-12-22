@@ -11,6 +11,8 @@ class HttpIPSource(val src: String) extends IPSource {
   private val uri = Uri(URI.create(src))
   private val logger = LoggerFactory.getLogger(s"iplist-$src")
 
+  val name: String = src
+
   def fetch: Seq[IP] = {
     logger.info("Fetching", src)
     val request = basicRequest.get(uri)
@@ -23,7 +25,7 @@ class HttpIPSource(val src: String) extends IPSource {
       .split("\n")
       .filter(_.nonEmpty)
       .map(_.split(' ').head)
-      .filter(ip => "^[0-9][0123456789./]*$".r.matches(ip))
+      .filter(ip => "^[0-9][0-9./]*$".r.matches(ip))
       .map(IP.fromString)
       .filter {
         case ip if IP.fromString("10.0.0.0/8").contains(ip) => false

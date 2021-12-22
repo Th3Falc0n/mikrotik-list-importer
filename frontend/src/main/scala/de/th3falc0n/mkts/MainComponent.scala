@@ -1,7 +1,7 @@
 package de.th3falc0n.mkts
 
 import cats.effect.IO
-import de.th3falc0n.mkts.Models.Blocklist
+import de.th3falc0n.mkts.Models.{AddressList, AddressListName, AddressSourceName}
 import japgolly.scalajs.react
 import japgolly.scalajs.react.ScalaComponent
 import japgolly.scalajs.react.ScalaComponent.BackendScope
@@ -16,8 +16,8 @@ object MainComponent {
   case class Props()
 
   case class State(
-                    entries: Option[Seq[Blocklist]],
-                    active: Option[Blocklist],
+                    entries: Option[Seq[AddressList]],
+                    active: Option[(AddressListName, Option[AddressSourceName])],
                   )
 
   object State {
@@ -50,15 +50,15 @@ object MainComponent {
             state.entries.toSeq.flatten.toVdomArray(entry =>
               <.a(^.href := "#", ^.cls := s"list-group-item list-group-item-action ${if (state.active.contains(entry)) "active" else ""}",
                 ^.onClick --> {
-                  $.modStateAsync(_.copy(active = Some(entry)))
+                  $.modStateAsync(_.copy(active = Some((entry.name, None)))) // TODO: Source
                 },
-                entry.name,
+                entry.name.string,
                 <.button(^.cls := "btn btn-danger",
                   ^.float := "right",
                   <.i(^.cls := "bi bi-trash-fill"),
                   ^.onClick ==> { e =>
                     e.stopPropagation()
-                    Api.deleteList(entry) >>
+                    Api.deleteList(entry.name) >>
                       fetchState
                   }
                 )
@@ -75,7 +75,8 @@ object MainComponent {
                   inputRef.get.to[IO].flatMap {
                     case Some(input) =>
                       val value = input.value
-                      Api.addList(Blocklist(value)) >>
+                      input.value = ""
+                      Api.putList(AddressList(AddressListName(value), Seq.empty, 10.minutes)) >>
                         fetchState
                   }
                 }
@@ -85,9 +86,12 @@ object MainComponent {
         ),
         <.div(
           ^.cls := "d-flex flex-column flex-fill",
-          state.active.map { list =>
-            IpListComponent.Component(IpListComponent.Props(list))
-          }
+          for {
+            active <- state.active
+            entries <- state.entries
+            activeEntry <- entries.find(_.name == active._1)
+          } yield
+            IpListComponent.Component(IpListComponent.Props((activeEntry, None)))
         )
       )
     }

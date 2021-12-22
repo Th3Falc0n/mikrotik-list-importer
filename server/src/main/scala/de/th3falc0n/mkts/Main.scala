@@ -2,6 +2,8 @@ package de.th3falc0n.mkts
 
 import cats.effect.{ExitCode, IO, IOApp}
 import com.typesafe.config.ConfigFactory
+import de.th3falc0n.mkts.repo.AddressListRepo
+import de.th3falc0n.mkts.route.UiRoutes
 import org.http4s.blaze.server.BlazeServerBuilder
 import org.slf4j.LoggerFactory
 
@@ -18,7 +20,7 @@ object Main extends IOApp {
 
     BlazeServerBuilder[IO]
       .bindHttp(8080, "0.0.0.0")
-      .withHttpApp(new UiRoutes().toRoutes.orNotFound)
+      .withHttpApp(new UiRoutes(AddressListRepo.inMemImpl).toRoutes.orNotFound)
       .resource
       .use(_ => IO.never)
   }

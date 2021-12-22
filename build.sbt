@@ -51,7 +51,7 @@ lazy val frontend = project
     scalaJSLinkerConfig ~= {
       _.withModuleKind(ModuleKind.ESModule)
     },
-    scalaJSUseMainModuleInitializer := true
+    scalaJSUseMainModuleInitializer := true,
   )
 
 lazy val frontendWebjar = frontend.webjar

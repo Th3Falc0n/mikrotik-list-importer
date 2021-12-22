@@ -1,7 +1,7 @@
 package de.th3falc0n.mkts
 
 import cats.effect.IO
-import de.th3falc0n.mkts.Models.{Blocklist, IpEntry}
+import de.th3falc0n.mkts.Models.{AddressList, AddressSource, IpEntry}
 import japgolly.scalajs.react.ScalaComponent
 import japgolly.scalajs.react.ScalaComponent.BackendScope
 import japgolly.scalajs.react.internal.CoreGeneral.ReactEventFromInput
@@ -13,7 +13,7 @@ import org.scalajs.dom.html.TableCell
 import scala.concurrent.duration._
 
 object IpListComponent {
-  case class Props(list: Blocklist)
+  case class Props(selected: (AddressList, Option[AddressSource]))
 
   case class State(
                     entries: Option[Seq[IpEntry]],
@@ -28,7 +28,7 @@ object IpListComponent {
     private def fetchState: IO[Unit] =
       for {
         props <- $.props.to[IO]
-        entries <- Api.entries(props.list)
+        entries <- Api.entries(props.selected._1.name, props.selected._2.map(_.name))
         _ <- $.modStateAsync(_.copy(entries = Some(entries)))
       } yield ()
 
@@ -40,8 +40,11 @@ object IpListComponent {
       tick
     }
 
-    def componentDidUpdate: IO[Unit] = {
-      fetchState
+    def componentDidUpdate(prevProps: Props): IO[Unit] = {
+      if ($.props.unsafeRunSync() != prevProps)
+        fetchState
+      else
+        IO.unit
     }
 
     def render: VdomElement = {
@@ -53,7 +56,6 @@ object IpListComponent {
         {
           val headers = Seq[VdomTagOf[TableCell]](
             <.th(^.scope := "col", "IP"),
-            <.th(^.scope := "col", "Enabled"),
             <.th(^.scope := "col", ^.width := "0"),
           )
 
@@ -83,16 +85,6 @@ object IpListComponent {
                 <.tr(
                   ^.key := entry.string,
                   <.th(^.scope := "row", entry.string),
-                  <.th(entry.enabled.toString),
-                  <.td(
-                    <.button(^.cls := "btn btn-danger",
-                      <.i(^.cls := "bi bi-trash-fill"),
-                      ^.onClick --> {
-                        Api.updateEntryEnabled(props.list, entry, entry.enabled) >>
-                          fetchState
-                      }
-                    )
-                  ),
                 )
               }
             )
@@ -108,6 +100,6 @@ object IpListComponent {
       .backend(new Backend(_))
       .render(_.backend.render)
       .componentDidMount(_.backend.componentDidMount)
-      .componentDidUpdate(_.backend.componentDidUpdate)
+      .componentDidUpdate(e => e.backend.componentDidUpdate(e.prevProps))
       .build
 }
