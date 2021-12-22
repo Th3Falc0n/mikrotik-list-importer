@@ -8,7 +8,7 @@ import de.th3falc0n.mkts.lists.{ HttpIPSource, IPSource }
 import org.slf4j.LoggerFactory
 
 import java.lang.System.Logger
-import java.util.concurrent.Executors
+import java.util.concurrent.{ Executors, TimeUnit }
 import scala.jdk.CollectionConverters._
 
 class IPUpdateListTask(val name: String, val sources: Seq[IPSource]) {
@@ -50,7 +50,7 @@ object TaskScheduler {
 
       val updateTask = new IPUpdateListTask(name, sources)
 
-      scheduler.scheduleAtFixedRate(() => updateTask.update(), 0, interval.toMillis, java.util.concurrent.TimeUnit.MILLISECONDS)
+      scheduler.scheduleAtFixedRate(() => updateTask.update(), 0, interval.toMillis, TimeUnit.MILLISECONDS)
     })
   }
 }
