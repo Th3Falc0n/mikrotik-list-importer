@@ -19,7 +19,8 @@ lists = [
       "https://iplists.firehol.org/files/et_tor.ipset",
       "https://iplists.firehol.org/files/et_compromised.ipset",
       "http://cinsscore.com/list/ci-badguys.txt"
-    ]
+    ],
+    update-interval: "1h"
   }
 ]
 ```
