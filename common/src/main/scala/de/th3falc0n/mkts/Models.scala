@@ -4,7 +4,13 @@ import io.circe.Codec
 import io.circe.generic.semiauto._
 
 object Models {
-  case class IpEntry(string: String)
+  case class Blocklist(name: String)
+
+  object Blocklist {
+    implicit val codec: Codec[Blocklist] = deriveCodec
+  }
+
+  case class IpEntry(string: String, enabled: Boolean)
 
   object IpEntry {
     implicit val codec: Codec[IpEntry] = deriveCodec

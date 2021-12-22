@@ -4,7 +4,7 @@ import cats.data.Kleisli
 import cats.effect.IO
 import cats.syntax.option._
 import de.lolhens.http4s.spa._
-import de.th3falc0n.mkts.Models.IpEntry
+import de.th3falc0n.mkts.Models.{Blocklist, IpEntry}
 import org.http4s.server.Router
 import org.http4s.server.staticcontent.ResourceServiceBuilder
 import org.http4s.{HttpRoutes, Uri}
@@ -26,10 +26,15 @@ class UiRoutes() {
     resourceServiceBuilder = ResourceServiceBuilder[IO]("/assets").some
   )
 
-  private val entries = Seq(
-    IpEntry("a"),
-    IpEntry("b"),
-    IpEntry("c"),
+  private var dummyLists = Seq(
+    Blocklist("test1"),
+    Blocklist("test2"),
+  )
+
+  private val dummyEntries = Seq(
+    IpEntry("a", true),
+    IpEntry("b", true),
+    IpEntry("c", true),
   )
 
   val toRoutes: HttpRoutes[IO] = {
@@ -38,9 +43,46 @@ class UiRoutes() {
       "/" -> appController.toRoutes,
 
       "/api" -> HttpRoutes.of {
-        case GET -> Root / "entries" =>
+        case GET -> Root / "lists" =>
           import org.http4s.circe.CirceEntityCodec._
-          Ok(entries)
+          for {
+            response <- Ok(dummyLists)
+          } yield
+            response
+
+        case request@DELETE -> Root / "lists" =>
+          import org.http4s.circe.CirceEntityCodec._
+          for {
+            list <- request.as[Blocklist]
+            _ = dummyLists = dummyLists.filterNot(_ == list)
+            response <- Ok(())
+          } yield
+            response
+
+        case request@PUT -> Root / "lists" =>
+          import org.http4s.circe.CirceEntityCodec._
+          for {
+            list <- request.as[Blocklist]
+            _ = dummyLists = dummyLists :+ list
+            response <- Ok(())
+          } yield
+            response
+
+        case request@POST -> Root / "entries" =>
+          import org.http4s.circe.CirceEntityCodec._
+          for {
+            list <- request.as[Blocklist]
+            response <- Ok(dummyEntries :+ IpEntry(list.name, false))
+          } yield
+            response
+
+        case request@POST -> Root / "entries" / "enabled" =>
+          import org.http4s.circe.CirceEntityCodec._
+          for {
+            e <- request.as[(Blocklist, IpEntry, Boolean)]
+            response <- Ok(())
+          } yield
+            response
       },
     )
   }
