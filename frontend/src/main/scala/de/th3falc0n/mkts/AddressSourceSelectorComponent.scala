@@ -1,7 +1,7 @@
 package de.th3falc0n.mkts
 
 import cats.effect.IO
-import de.th3falc0n.mkts.Models.{AddressList, AddressSourceName}
+import de.th3falc0n.mkts.Models.{AddressList, AddressSource, AddressSourceName}
 import japgolly.scalajs.react
 import japgolly.scalajs.react.ScalaComponent
 import japgolly.scalajs.react.ScalaComponent.BackendScope
@@ -10,7 +10,7 @@ import japgolly.scalajs.react.vdom.VdomElement
 import japgolly.scalajs.react.vdom.html_<^._
 import org.scalajs.dom.html
 
-object AddressListPanelComponent {
+object AddressSourceSelectorComponent {
   case class Props(addressList: AddressList,
                    onChange: IO[Unit])
 
@@ -21,6 +21,13 @@ object AddressListPanelComponent {
   }
 
   class Backend($: BackendScope[Props, State]) {
+    def componentDidUpdate(prevProps: Props): IO[Unit] = {
+      if ($.props.unsafeRunSync().addressList.name != prevProps.addressList.name)
+        $.modStateAsync(_.copy(active = None))
+      else
+        IO.unit
+    }
+
     def render: VdomElement = {
       val props = $.props.unsafeRunSync()
       val state = $.state.unsafeRunSync()
@@ -47,8 +54,8 @@ object AddressListPanelComponent {
                   <.i(^.cls := "bi bi-trash-fill"),
                   ^.onClick ==> { e =>
                     e.stopPropagation()
-                    //Api.deleteList(entry.name) >>
-                    props.onChange
+                    Api.deleteSource(props.addressList.name, entry.name) >>
+                      props.onChange
                   }
                 )
               )
@@ -65,8 +72,8 @@ object AddressListPanelComponent {
                     case Some(input) =>
                       val value = input.value
                       input.value = ""
-                      //Api.putList(AddressList(AddressListName(value), Seq.empty, 10.minutes)) >>
-                      props.onChange
+                      Api.putSource(props.addressList.name, AddressSource(AddressSourceName(value))) >>
+                        props.onChange
                   }
                 }
               )
@@ -89,5 +96,6 @@ object AddressListPanelComponent {
       .initialState(State.empty)
       .backend(new Backend(_))
       .render(_.backend.render)
+      .componentDidUpdate(e => e.backend.componentDidUpdate(e.prevProps))
       .build
 }

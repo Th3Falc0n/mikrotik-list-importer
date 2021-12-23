@@ -1,7 +1,7 @@
 package de.th3falc0n.mkts
 
 import cats.effect.IO
-import de.th3falc0n.mkts.Models.{AddressList, AddressListName, AddressSourceName, IpEntry}
+import de.th3falc0n.mkts.Models._
 import org.http4s.circe.CirceEntityCodec._
 import org.http4s.dom.FetchClientBuilder
 import org.http4s.implicits._
@@ -13,11 +13,33 @@ object Api {
   def lists: IO[Seq[AddressList]] =
     client.expect[Seq[AddressList]](Request[IO](method = Method.GET, uri = uri"/api/lists"))
 
-  def deleteList(list: AddressListName): IO[Unit] =
-    client.expect[Unit](Request[IO](method = Method.DELETE, uri = uri"/api/lists").withEntity(list))
+  def deleteList(addressListName: AddressListName): IO[Unit] =
+    client.expect[Unit](Request[IO](method = Method.DELETE, uri = uri"/api/lists").withEntity(addressListName))
 
-  def putList(list: AddressList): IO[Unit] =
-    client.expect[Unit](Request[IO](method = Method.PUT, uri = uri"/api/lists").withEntity(list))
+  def putList(addressList: AddressList): IO[Unit] =
+    client.expect[Unit](Request[IO](method = Method.PUT, uri = uri"/api/lists").withEntity(addressList))
+
+  def deleteSource(addressListName: AddressListName, addressSourceName: AddressSourceName): IO[Unit] =
+    for {
+      addressListOption <- lists.map(_.find(_.name == addressListName))
+      _ <- addressListOption match {
+        case Some(addressList) =>
+          putList(addressList.copy(sources = addressList.sources.filterNot(_.name == addressSourceName)))
+
+        case None => IO.unit
+      }
+    } yield ()
+
+  def putSource(addressListName: AddressListName, addressSource: AddressSource): IO[Unit] =
+    for {
+      addressListOption <- lists.map(_.find(_.name == addressListName))
+      _ <- addressListOption match {
+        case Some(addressList) =>
+          putList(addressList.copy(sources = addressList.sources :+ addressSource))
+
+        case None => IO.unit
+      }
+    } yield ()
 
   def entries(addressListName: AddressListName, addressSourceName: Option[AddressSourceName]): IO[Seq[IpEntry]] =
     client.expect[Seq[IpEntry]](Request[IO](method = Method.POST, uri = uri"/api/entries").withEntity((addressListName, addressSourceName))) // TODO

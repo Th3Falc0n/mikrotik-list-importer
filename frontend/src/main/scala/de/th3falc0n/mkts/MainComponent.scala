@@ -51,7 +51,7 @@ object MainComponent {
               ^.onClick --> {
                 $.modStateAsync(_.copy(active = None))
               },
-              <.h5(^.cls := "mb-1", "Global")
+              <.h5(^.cls := "mb-1", "Global Config")
             ),
             state.entries.getOrElse(Seq.empty).toVdomArray(entry =>
               <.a(^.href := "#", ^.cls := s"list-group-item list-group-item-action pe-2 ${if (state.active.contains(entry.name)) "active" else ""}",
@@ -94,7 +94,7 @@ object MainComponent {
           ^.cls := "d-flex flex-column flex-fill",
           state.active.flatMap(e => state.entries.flatMap(_.find(_.name == e))) match {
             case Some(activeEntry) =>
-              AddressListPanelComponent.Component(AddressListPanelComponent.Props(
+              AddressSourceSelectorComponent.Component(AddressSourceSelectorComponent.Props(
                 activeEntry,
                 fetchState,
               ))
