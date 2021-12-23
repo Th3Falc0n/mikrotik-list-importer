@@ -78,12 +78,11 @@ object MainComponent {
               <.button(^.cls := "btn btn-primary ms-1",
                 <.i(^.cls := "bi bi-plus"),
                 ^.onClick --> {
-                  inputRef.get.to[IO].flatMap {
-                    case Some(input) =>
-                      val value = input.value
-                      input.value = ""
-                      Api.putList(AddressList(AddressListName(value), Seq.empty, 10.minutes)) >>
-                        fetchState
+                  inputRef.foreach { input =>
+                    val value = input.value
+                    input.value = ""
+                    Api.putList(AddressList(AddressListName(value), Seq.empty, 10.minutes)) >>
+                      fetchState
                   }
                 }
               )

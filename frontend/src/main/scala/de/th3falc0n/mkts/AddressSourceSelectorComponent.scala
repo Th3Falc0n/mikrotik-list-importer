@@ -68,12 +68,11 @@ object AddressSourceSelectorComponent {
               <.button(^.cls := "btn btn-primary ms-1",
                 <.i(^.cls := "bi bi-plus"),
                 ^.onClick --> {
-                  inputRef.get.to[IO].flatMap {
-                    case Some(input) =>
-                      val value = input.value
-                      input.value = ""
-                      Api.putSource(props.addressList.name, AddressSource(AddressSourceName(value))) >>
-                        props.onChange
+                  inputRef.foreach { input =>
+                    val value = input.value
+                    input.value = ""
+                    Api.putSource(props.addressList.name, AddressSource(AddressSourceName(value))) >>
+                      props.onChange
                   }
                 }
               )
