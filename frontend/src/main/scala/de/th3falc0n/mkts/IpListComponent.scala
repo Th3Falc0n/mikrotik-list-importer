@@ -1,7 +1,7 @@
 package de.th3falc0n.mkts
 
 import cats.effect.IO
-import de.th3falc0n.mkts.Models.{AddressList, AddressSource, IpEntry}
+import de.th3falc0n.mkts.Models.{AddressList, AddressSource, IP}
 import japgolly.scalajs.react.ScalaComponent
 import japgolly.scalajs.react.ScalaComponent.BackendScope
 import japgolly.scalajs.react.internal.CoreGeneral.ReactEventFromInput
@@ -17,7 +17,7 @@ object IpListComponent {
                    selectedAddressSource: Option[AddressSource])
 
   case class State(
-                    entries: Option[Seq[IpEntry]],
+                    entries: Option[Seq[IP]],
                     filter: String
                   )
 
@@ -81,11 +81,11 @@ object IpListComponent {
                 )
               ), {
                 val filterLowerCase = state.filter.toLowerCase
-                state.entries.getOrElse(Seq.empty).filter(_.string.contains(filterLowerCase))
+                state.entries.getOrElse(Seq.empty).filter(_.toString.contains(filterLowerCase))
               }.toVdomArray { entry =>
                 <.tr(
-                  ^.key := entry.string,
-                  <.th(^.scope := "row", entry.string),
+                  ^.key := entry.toString,
+                  <.th(^.scope := "row", entry.toString),
                 )
               }
             )

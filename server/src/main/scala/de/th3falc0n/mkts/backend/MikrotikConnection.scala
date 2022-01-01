@@ -1,7 +1,7 @@
 package de.th3falc0n.mkts.backend
 
 import de.th3falc0n.mkts.Main.config
-import de.th3falc0n.mkts.ip.IP
+import de.th3falc0n.mkts.Models.IP
 import me.legrange.mikrotik.ApiConnection
 import org.slf4j.{ Logger, LoggerFactory }
 

@@ -1,10 +1,9 @@
 package de.th3falc0n.mkts.repo
 
 import cats.effect.{ ExitCode, IO }
-import de.th3falc0n.mkts.Models.{ AddressList, AddressSource }
+import de.th3falc0n.mkts.Models.{ AddressList, AddressSource, IP }
 import de.th3falc0n.mkts.backend.MikrotikConnection
-import de.th3falc0n.mkts.ip.{ IP, IPMerger }
-import io.circe.{ Codec, Decoder, Encoder }
+import de.th3falc0n.mkts.ip.IPMerger
 import org.slf4j.LoggerFactory
 import sttp.client3.{ HttpURLConnectionBackend, basicRequest }
 import sttp.model.Uri
@@ -45,15 +44,21 @@ object BackendImplicits  {
   implicit class BackendAddressList(addressList: AddressList) {
     private val logger = LoggerFactory.getLogger("AddressList-" + addressList.name.string)
 
+    def fetch: Seq[IP] = {
+      logger.info("Updating list {} with {} sources", addressList.name.string, addressList.sources.length)
+      val ips = addressList.sources.flatMap(_.fetch)
+
+      logger.info("Got {} unique IPs", ips.length)
+      val merged = IPMerger.mergeIPs(ips)
+
+      logger.info("Reduced to {} unique list entries", merged.length)
+      merged
+    }
+
     def update: IO[ExitCode] = IO {
       try {
-        logger.info("Updating list {} with {} sources", addressList.name.string, addressList.sources.length)
-        val ips = addressList.sources.flatMap(_.fetch)
+        val merged = fetch
 
-        logger.info("Got {} unique IPs", ips.length)
-        val merged = IPMerger.mergeIPs(ips)
-
-        logger.info("Reduced to {} unique list entries", merged.length)
         MikrotikConnection.updateList(addressList.name.string, merged)
 
         logger.info("Updated list {} with {} unique IPs", addressList.name.string, merged.length)

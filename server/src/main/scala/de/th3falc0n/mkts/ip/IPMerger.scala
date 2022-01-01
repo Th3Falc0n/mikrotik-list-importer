@@ -1,5 +1,6 @@
 package de.th3falc0n.mkts.ip
 
+import de.th3falc0n.mkts.Models.IP
 import org.slf4j.LoggerFactory
 
 object IPMerger {

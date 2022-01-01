@@ -41,9 +41,9 @@ object Api {
       }
     } yield ()
 
-  def entries(addressListName: AddressListName, addressSourceName: Option[AddressSourceName]): IO[Seq[IpEntry]] =
-    client.expect[Seq[IpEntry]](Request[IO](method = Method.POST, uri = uri"/api/entries").withEntity((addressListName, addressSourceName))) // TODO
+  def entries(addressListName: AddressListName, addressSourceName: Option[AddressSourceName]): IO[Seq[IP]] =
+    client.expect[Seq[IP]](Request[IO](method = Method.POST, uri = uri"/api/entries").withEntity((addressListName, addressSourceName))) // TODO
 
-  def updateEntryEnabled(list: AddressListName, entry: IpEntry, enabled: Boolean): IO[Unit] =
+  def updateEntryEnabled(list: AddressListName, entry: IP, enabled: Boolean): IO[Unit] =
     client.expect[Unit](Request[IO](method = Method.POST, uri = uri"/api/entries/enabled").withEntity((list, entry, enabled)))
 }
