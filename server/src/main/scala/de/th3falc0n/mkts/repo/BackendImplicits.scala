@@ -3,12 +3,14 @@ package de.th3falc0n.mkts.repo
 import cats.effect.{ ExitCode, IO }
 import de.th3falc0n.mkts.Models.{ AddressList, AddressSource, IP }
 import de.th3falc0n.mkts.backend.MikrotikConnection
+import de.th3falc0n.mkts.cache.Cache
 import de.th3falc0n.mkts.ip.IPMerger
 import org.slf4j.LoggerFactory
 import sttp.client3.{ HttpURLConnectionBackend, basicRequest }
 import sttp.model.Uri
 
 import java.net.URI
+import java.time.Duration
 
 object BackendImplicits  {
   implicit class BackendAddressSource(addressSource: AddressSource) {
@@ -17,13 +19,19 @@ object BackendImplicits  {
 
     def fetch: Seq[IP] = {
       logger.info("Fetching")
-      val request = basicRequest.get(uri)
 
-      val backend = HttpURLConnectionBackend()
-      val response = request.send(backend)
+      val response = Cache.getOrElseUpdate(
+        s"fetch-${addressSource.hashCode()}",
+        Duration.ofMinutes(15),
+        {
+          val request = basicRequest.get(uri)
+          val backend = HttpURLConnectionBackend()
+          request.send(backend).body
+        }
+      )
 
       val ips = response
-        .body.getOrElse("")
+        .getOrElse("")
         .split("\n")
         .filter(_.nonEmpty)
         .map(_.split(' ').head)
