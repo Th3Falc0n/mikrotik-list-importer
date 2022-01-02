@@ -171,7 +171,7 @@ object IpListComponent {
                     ^.colSpan := columns.size,
                     <.button(^.tpe := "button", ^.cls := "btn btn-sm btn-primary w-100",
                       ^.onClick --> $.modStateAsync(_.copy(showAll = true)),
-                      "Mehr anzeigen..."
+                      "Show more..."
                     )
                   )
                 )
