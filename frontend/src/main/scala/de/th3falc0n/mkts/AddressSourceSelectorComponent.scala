@@ -33,18 +33,24 @@ object AddressSourceSelectorComponent {
       val state = $.state.unsafeRunSync()
 
       <.div(
-        ^.cls := "d-flex flex-row",
+        ^.cls := "d-flex flex-row flex-wrap h-100 gap-2",
         <.div(
-          ^.cls := "d-flex flex-column px-2",
+          ^.cls := "d-flex flex-column overflow-auto",
           <.div(^.cls := "list-group",
-            <.a(^.href := "#", ^.cls := s"list-group-item list-group-item-action ${if (state.active.isEmpty) "active" else ""}",
+            <.div(
+              ^.cls := "list-group-item",
+              <.h5(^.cls := "mb-1", "Sources"),
+            ),
+            <.a(^.key := "all", ^.href := "#",
+              ^.cls := s"list-group-item list-group-item-action ${if (state.active.isEmpty) "active" else ""}",
               ^.onClick --> {
                 $.modStateAsync(_.copy(active = None))
               },
-              <.h5(^.cls := "mb-1", "All")
+              <.h6(^.cls := "mb-1", "All")
             ),
             props.addressList.sources.toVdomArray(entry =>
-              <.a(^.href := "#", ^.cls := s"list-group-item list-group-item-action pe-2 ${if (state.active.contains(entry.name)) "active" else ""}",
+              <.a(^.key := s"entry-${entry.name.string}", ^.href := "#",
+                ^.cls := s"list-group-item list-group-item-action pe-2 ${if (state.active.contains(entry.name)) "active" else ""}",
                 ^.onClick --> {
                   $.modStateAsync(_.copy(active = Some(entry.name)))
                 },
@@ -80,7 +86,7 @@ object AddressSourceSelectorComponent {
           }
         ),
         <.div(
-          ^.cls := "d-flex flex-column flex-fill",
+          ^.cls := "d-flex flex-column flex-fill h-100",
           IpListComponent.Component(IpListComponent.Props(
             props.addressList,
             state.active.flatMap(e => props.addressList.sources.find(_.name == e))

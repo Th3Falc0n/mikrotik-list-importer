@@ -43,18 +43,24 @@ object MainComponent {
       val state = $.state.unsafeRunSync()
 
       <.div(
-        ^.cls := "my-4 d-flex flex-row",
+        ^.cls := "d-flex flex-row flex-wrap h-100 p-2 gap-2",
         <.div(
-          ^.cls := "d-flex flex-column px-2",
+          ^.cls := "d-flex flex-column overflow-auto",
           <.div(^.cls := "list-group",
-            <.a(^.href := "#", ^.cls := s"list-group-item list-group-item-action ${if (state.active.isEmpty) "active" else ""}",
+            <.div(
+              ^.cls := "list-group-item",
+              <.h5(^.cls := "mb-1", "Address Lists"),
+            ),
+            <.a(^.key := "config", ^.href := "#",
+              ^.cls := s"list-group-item list-group-item-action ${if (state.active.isEmpty) "active" else ""}",
               ^.onClick --> {
                 $.modStateAsync(_.copy(active = None))
               },
-              <.h5(^.cls := "mb-1", "Global Config")
+              <.h6(^.cls := "mb-1", "Global Config")
             ),
             state.entries.getOrElse(Seq.empty).toVdomArray(entry =>
-              <.a(^.href := "#", ^.cls := s"list-group-item list-group-item-action pe-2 ${if (state.active.contains(entry.name)) "active" else ""}",
+              <.a(^.key := s"entry-${entry.name.string}", ^.href := "#",
+                ^.cls := s"list-group-item list-group-item-action pe-2 ${if (state.active.contains(entry.name)) "active" else ""}",
                 ^.onClick --> {
                   $.modStateAsync(_.copy(active = Some(entry.name)))
                 },
@@ -71,6 +77,7 @@ object MainComponent {
               )
             )
           ),
+          // new element input
           {
             val inputRef = react.Ref[html.Input]
             <.div(^.cls := "d-flex flex-row mt-2",
@@ -90,7 +97,7 @@ object MainComponent {
           }
         ),
         <.div(
-          ^.cls := "d-flex flex-column flex-fill",
+          ^.cls := "d-flex flex-column flex-fill h-100",
           state.active.flatMap(e => state.entries.flatMap(_.find(_.name == e))) match {
             case Some(activeEntry) =>
               AddressSourceSelectorComponent.Component(AddressSourceSelectorComponent.Props(

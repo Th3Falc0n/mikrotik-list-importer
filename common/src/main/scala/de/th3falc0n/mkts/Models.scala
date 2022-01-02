@@ -1,8 +1,7 @@
 package de.th3falc0n.mkts
 
 import io.circe.generic.semiauto._
-import io.circe.{ Codec, Decoder, Encoder }
-import org.slf4j.LoggerFactory
+import io.circe.{Codec, Decoder, Encoder}
 
 import java.util.concurrent.TimeUnit
 import scala.concurrent.duration.Duration
@@ -59,6 +58,8 @@ object Models {
 
       (other.host & (0xFFFFFFFF << (32 - maskBits))) == host
     }
+
+    def numberOfHosts: Int = 1 << (32 - maskBits)
 
     override def toString: String = {
       val a = host >> 24 & 0xFF

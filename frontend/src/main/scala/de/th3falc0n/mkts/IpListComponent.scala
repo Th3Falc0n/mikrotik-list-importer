@@ -8,9 +8,9 @@ import japgolly.scalajs.react.internal.CoreGeneral.ReactEventFromInput
 import japgolly.scalajs.react.util.EffectCatsEffect._
 import japgolly.scalajs.react.vdom.VdomElement
 import japgolly.scalajs.react.vdom.html_<^._
-import org.scalajs.dom.html.TableCell
 
 import scala.concurrent.duration._
+import scala.util.chaining._
 
 object IpListComponent {
   case class Props(selectedAddressList: AddressList,
@@ -18,11 +18,22 @@ object IpListComponent {
 
   case class State(
                     entries: Option[Seq[IP]],
+                    sorting: Option[Sorting[IP, _]],
                     filter: String
-                  )
+                  ) {
+    def toggleSorting[T](name: String, f: IP => T)(implicit ordering: Ordering[T]): State =
+      copy(sorting = Sorting.toggle(sorting)(name, f)).tap(_.entriesSorted)
+
+    lazy val entriesSorted: Seq[IP] = {
+      val filterLowerCase = filter.toLowerCase
+      entries.getOrElse(Seq.empty)
+        .filter(_.toString.contains(filterLowerCase))
+        .pipe(e => sorting.fold(e)(_.sort(e)))
+    }
+  }
 
   object State {
-    val empty: State = State(None, "")
+    val empty: State = State(None, None, "")
   }
 
   class Backend($: BackendScope[Props, State]) {
@@ -30,7 +41,7 @@ object IpListComponent {
       for {
         props <- $.props.to[IO]
         entries <- Api.entries(props.selectedAddressList.name, props.selectedAddressSource.map(_.name))
-        _ <- $.modStateAsync(_.copy(entries = Some(entries)))
+        _ <- $.modStateAsync(_.copy(entries = Some(entries)).tap(_.entriesSorted))
       } yield ()
 
     def componentDidMount: IO[Unit] = {
@@ -49,25 +60,58 @@ object IpListComponent {
     }
 
     def render: VdomElement = {
-      val props = $.props.unsafeRunSync()
       val state = $.state.unsafeRunSync()
 
       <.div(
-        ^.cls := "d-flex flex-column flex-fill",
+        ^.cls := "d-flex flex-column flex-fill overflow-auto",
         {
-          val headers = Seq[VdomTagOf[TableCell]](
-            <.th(^.scope := "col", "IP"),
-            <.th(^.scope := "col", ^.width := "0"),
+          case class Col[T](name: String,
+                            f: IP => T,
+                            cell: IP => VdomElement,
+                            label: String = null,
+                            shrink: Boolean = false)
+                           (implicit ordering: Ordering[T]) {
+            def header: VdomElement =
+              <.th(
+                ^.key := name,
+                ^.scope := "col",
+                ^.cls := "sortable-table-header",
+                ^.width :=? Option.when(shrink)("0"),
+                ^.onClick --> $.modStateAsync(_.toggleSorting(name, f)),
+                <.div(
+                  ^.cls := "d-flex flex-row pe-3",
+                  <.div(
+                    ^.whiteSpace := "nowrap",
+                    Option(label).getOrElse[String](name)
+                  ),
+                  <.div(
+                    ^.position := "relative",
+                    state.sorting.filter(_.name == name).map(sorting =>
+                      <.i(^.cls := s"bi ${if (sorting.reverse) "bi-caret-up-fill" else "bi-caret-down-fill"} ms-1", ^.position := "absolute")
+                    )
+                  )
+                )
+              )
+          }
+
+          val columns = Seq[Col[_]](
+            Col(s"IP (${state.entriesSorted.size})", _.host,
+              e => <.th(^.key := "ip", ^.scope := "row", e.toString),
+              label = s"IP (${state.entriesSorted.size})"
+            ),
+            Col("# of Hosts", _.numberOfHosts,
+              e => <.td(^.key := "number", e.numberOfHosts)
+            )
           )
 
           <.table(^.cls := "table",
             <.thead(
-              <.tr(headers: _*)
+              <.tr(columns.toVdomArray(_.header))
             ),
             <.tbody(
               <.tr(
                 <.td(
-                  ^.colSpan := headers.size,
+                  ^.colSpan := columns.size,
                   <.input(
                     ^.id := "search",
                     ^.cls := "align-self-center form-control",
@@ -79,13 +123,11 @@ object IpListComponent {
                     }
                   )
                 )
-              ), {
-                val filterLowerCase = state.filter.toLowerCase
-                state.entries.getOrElse(Seq.empty).filter(_.toString.contains(filterLowerCase))
-              }.toVdomArray { entry =>
+              ),
+              state.entriesSorted.toVdomArray { entry =>
                 <.tr(
                   ^.key := entry.toString,
-                  <.th(^.scope := "row", entry.toString),
+                  columns.toVdomArray(_.cell(entry))
                 )
               }
             )

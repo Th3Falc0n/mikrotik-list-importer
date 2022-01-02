@@ -4,13 +4,13 @@ import cats.data.Kleisli
 import cats.effect.IO
 import cats.syntax.option._
 import de.lolhens.http4s.spa._
-import de.th3falc0n.mkts.Models.{ AddressList, AddressListName, AddressSource, AddressSourceName }
+import de.th3falc0n.mkts.Models.{AddressList, AddressListName, AddressSourceName}
 import de.th3falc0n.mkts.repo.AddressListRepo
-import de.th3falc0n.mkts.repo.BackendImplicits.{ BackendAddressList, BackendAddressSource }
+import de.th3falc0n.mkts.repo.BackendImplicits.{BackendAddressList, BackendAddressSource}
 import org.http4s.server.Router
 import org.http4s.server.middleware.GZip
 import org.http4s.server.staticcontent.ResourceServiceBuilder
-import org.http4s.{ HttpRoutes, Uri }
+import org.http4s.{HttpRoutes, Uri}
 import org.slf4j.LoggerFactory
 
 import scala.util.chaining._
@@ -25,6 +25,7 @@ class UiRoutes(addressListRepo: AddressListRepo[IO]) {
       SpaDependencies.react17,
       SpaDependencies.bootstrap5,
       SpaDependencies.bootstrapIcons1,
+      SpaDependencies.mainCss,
     ),
   )
 
@@ -39,7 +40,7 @@ class UiRoutes(addressListRepo: AddressListRepo[IO]) {
     Router(
       "/" -> appController.toRoutes.pipe(GZip(_)),
 
-      "/api" -> HttpRoutes.of {
+      "/api" -> HttpRoutes.of[IO] {
         case GET -> Root / "lists" =>
           logger.info("GET /api/lists")
           import org.http4s.circe.CirceEntityCodec._
@@ -72,8 +73,8 @@ class UiRoutes(addressListRepo: AddressListRepo[IO]) {
         case request@GET -> Root / "lists" / addressListNameString / "entries" =>
           logger.info(s"GET /api/lists/$addressListNameString/entries")
           val addressListName = AddressListName(addressListNameString)
-          import org.http4s.circe.CirceEntityCodec._
           import de.th3falc0n.mkts.Models.IP._
+          import org.http4s.circe.CirceEntityCodec._
           for {
             list <- addressListRepo.list.map { list =>
               list.find(_.name == addressListName)
@@ -111,7 +112,7 @@ class UiRoutes(addressListRepo: AddressListRepo[IO]) {
             response <- Ok(())
           } yield
             response*/
-      }
+      }.pipe(GZip(_))
     )
   }
 }

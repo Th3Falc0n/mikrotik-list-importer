@@ -42,7 +42,13 @@ object Api {
     } yield ()
 
   def entries(addressListName: AddressListName, addressSourceName: Option[AddressSourceName]): IO[Seq[IP]] =
-    client.expect[Seq[IP]](Request[IO](method = Method.POST, uri = uri"/api/entries").withEntity((addressListName, addressSourceName))) // TODO
+    client.expect[Seq[IP]](Request[IO](method = Method.GET, uri = addressSourceName match {
+      case Some(sourceName) =>
+        uri"/api/lists" / addressListName.string / "sources" / sourceName.string / "entries"
+
+      case None =>
+        uri"/api/lists" / addressListName.string / "entries"
+    }))
 
   def updateEntryEnabled(list: AddressListName, entry: IP, enabled: Boolean): IO[Unit] =
     client.expect[Unit](Request[IO](method = Method.POST, uri = uri"/api/entries/enabled").withEntity((list, entry, enabled)))
