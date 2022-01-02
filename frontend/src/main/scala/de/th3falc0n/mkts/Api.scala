@@ -41,8 +41,8 @@ object Api {
       }
     } yield ()
 
-  def entries(addressListName: AddressListName, addressSourceName: Option[AddressSourceName]): IO[Seq[IP]] =
-    client.expect[Seq[IP]](Request[IO](method = Method.GET, uri = addressSourceName match {
+  def entries(addressListName: AddressListName, addressSourceName: Option[AddressSourceName]): IO[Seq[IPListEntry]] =
+    client.expect[Seq[IPListEntry]](Request[IO](method = Method.GET, uri = addressSourceName match {
       case Some(sourceName) =>
         uri"/api/lists" / addressListName.string / "sources" / sourceName.string / "entries"
 

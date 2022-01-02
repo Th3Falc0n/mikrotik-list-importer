@@ -83,7 +83,15 @@ object Models {
       IP(host.split('.').map(_.toInt).reduceLeft(_ * 256 + _), netmask.toInt)
     }
 
-    implicit val codec: Codec[IP] = deriveCodec
+    implicit val codec: Codec[IP] = Codec.from(
+      Decoder.decodeString.map(IP.fromString),
+      Encoder.encodeString.contramap(_.toString)
+    )
   }
 
+  case class IPListEntry(ip: IP, comment: String)
+
+  object IPListEntry {
+    implicit val codec: Codec[IPListEntry] = deriveCodec
+  }
 }

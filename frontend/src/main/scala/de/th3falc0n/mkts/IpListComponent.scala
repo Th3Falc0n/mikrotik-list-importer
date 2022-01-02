@@ -2,7 +2,7 @@ package de.th3falc0n.mkts
 
 import cats.effect.IO
 import cats.syntax.option._
-import de.th3falc0n.mkts.Models.{AddressList, AddressSource, IP}
+import de.th3falc0n.mkts.Models.{AddressList, AddressSource, IPListEntry}
 import japgolly.scalajs.react.ScalaComponent
 import japgolly.scalajs.react.ScalaComponent.BackendScope
 import japgolly.scalajs.react.internal.CoreGeneral.ReactEventFromInput
@@ -20,15 +20,15 @@ object IpListComponent {
                   )
 
   case class State(
-                    entries: Option[Seq[IP]],
-                    sorting: Option[Sorting[IP, _]],
+                    entries: Option[Seq[IPListEntry]],
+                    sorting: Option[Sorting[IPListEntry, _]],
                     filter: String,
-                    selected: Option[IP],
+                    selected: Option[IPListEntry],
                   ) {
-    def toggleSorting[T](name: String, f: IP => T)(implicit ordering: Ordering[T]): State =
+    def toggleSorting[T](name: String, f: IPListEntry => T)(implicit ordering: Ordering[T]): State =
       copy(sorting = Sorting.toggle(sorting)(name, f)).tap(_.entriesSorted)
 
-    lazy val entriesSorted: Seq[IP] = {
+    lazy val entriesSorted: Seq[IPListEntry] = {
       val filterLowerCase = filter.toLowerCase
       entries.getOrElse(Seq.empty)
         .filter(_.toString.contains(filterLowerCase))
@@ -70,8 +70,8 @@ object IpListComponent {
         ^.cls := "d-flex flex-column flex-fill overflow-auto",
         {
           case class Col[T](name: String,
-                            f: IP => T,
-                            cell: IP => VdomElement,
+                            f: IPListEntry => T,
+                            cell: IPListEntry => VdomElement,
                             label: String = null,
                             shrink: Boolean = false)
                            (implicit ordering: Ordering[T]) {
@@ -99,12 +99,15 @@ object IpListComponent {
           }
 
           val columns = Seq[Col[_]](
-            Col(s"IP (${state.entriesSorted.size})", _.host,
-              e => <.th(^.key := "ip", ^.scope := "row", e.toString),
+            Col(s"IP (${state.entriesSorted.size})", _.ip.host,
+              e => <.th(^.key := "ip", ^.scope := "row", e.ip.toString),
               label = s"IP (${state.entriesSorted.size})"
             ),
-            Col("# of Hosts", _.numberOfHosts,
-              e => <.td(^.key := "number", e.numberOfHosts)
+            Col("# of Hosts", _.ip.numberOfHosts,
+              e => <.td(^.key := "number", e.ip.numberOfHosts)
+            ),
+            Col("Comment", _.comment,
+              e => <.td(^.key := "comment", e.comment)
             )
           )
 
