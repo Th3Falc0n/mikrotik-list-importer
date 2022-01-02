@@ -24,20 +24,24 @@ object IpListComponent {
                     sorting: Option[Sorting[IPListEntry, _]],
                     filter: String,
                     selected: Option[IPListEntry],
+                    showAll: Boolean,
                   ) {
     def toggleSorting[T](name: String, f: IPListEntry => T)(implicit ordering: Ordering[T]): State =
       copy(sorting = Sorting.toggle(sorting)(name, f)).tap(_.entriesSorted)
 
-    lazy val entriesSorted: Seq[IPListEntry] = {
+    lazy val (entriesSorted, entriesSortedRemaining): (Seq[IPListEntry], Seq[IPListEntry]) = {
       val filterLowerCase = filter.toLowerCase
       entries.getOrElse(Seq.empty)
         .filter(_.toString.contains(filterLowerCase))
         .pipe(e => sorting.fold(e)(_.sort(e)))
+        .pipe(e => if (showAll) (e, Seq.empty) else e.splitAt(100))
     }
+
+    lazy val entriesSortedSize: Int = entriesSorted.size + entriesSortedRemaining.size
   }
 
   object State {
-    val empty: State = State(None, None, "", None)
+    val empty: State = State(None, None, "", None, showAll = false)
   }
 
   class Backend($: BackendScope[Props, State]) {
@@ -58,7 +62,11 @@ object IpListComponent {
 
     def componentDidUpdate(prevProps: Props): IO[Unit] = {
       if ($.props.unsafeRunSync() != prevProps)
-        fetchState
+        $.modStateAsync(_.copy(
+          entries = None,
+          showAll = false,
+        )) >>
+          fetchState
       else
         IO.unit
     }
@@ -72,7 +80,7 @@ object IpListComponent {
           case class Col[T](name: String,
                             f: IPListEntry => T,
                             cell: IPListEntry => VdomElement,
-                            label: String = null,
+                            label: VdomElement = null,
                             shrink: Boolean = false)
                            (implicit ordering: Ordering[T]) {
             def header: VdomElement =
@@ -84,10 +92,10 @@ object IpListComponent {
                 ^.onClick --> $.modStateAsync(_.toggleSorting(name, f)),
                 <.div(
                   ^.cls := "d-flex flex-row pe-3",
-                  <.div(
+                  Option(label).getOrElse(<.div(
                     ^.whiteSpace := "nowrap",
-                    Option(label).getOrElse[String](name)
-                  ),
+                    name
+                  )),
                   <.div(
                     ^.position := "relative",
                     state.sorting.filter(_.name == name).map(sorting =>
@@ -101,7 +109,10 @@ object IpListComponent {
           val columns = Seq[Col[_]](
             Col(s"IP (${state.entriesSorted.size})", _.ip.host,
               e => <.th(^.key := "ip", ^.scope := "row", e.ip.toString),
-              label = s"IP (${state.entriesSorted.size})"
+              label = <.div(
+                ^.whiteSpace := "nowrap",
+                s"IP (${if (state.entries.nonEmpty) state.entriesSortedSize.toString else "..."})"
+              )
             ),
             Col("# of Hosts", _.ip.numberOfHosts,
               e => <.td(^.key := "number", e.ip.numberOfHosts)
@@ -131,15 +142,38 @@ object IpListComponent {
                   )
                 )
               ),
+              Option.when(state.entries.isEmpty) {
+                <.tr(
+                  <.td(^.colSpan := columns.size,
+                    <.div(^.cls := "d-flex flex-row justify-content-center",
+                      <.div(^.cls := "spinner-border", ^.role := "status",
+                        <.span(^.cls := "visually-hidden", "Loading...")
+                      )
+                    )
+                  )
+                )
+              },
               state.entriesSorted.toVdomArray { entry =>
                 val active = state.selected.contains(entry)
                 <.tr(
-                  ^.key := entry.toString,
+                  ^.key := s"entry-${entry.ip}",
                   ^.cls := s"selectable-table-row ${if (active) "active" else ""}",
                   ^.onClick -->? Option.when(!active) {
                     $.modStateAsync(_.copy(selected = entry.some))
                   },
                   columns.toVdomArray(_.cell(entry))
+                )
+              },
+              Option.when(state.entriesSortedRemaining.nonEmpty) {
+                <.tr(
+                  ^.key := "remaining",
+                  <.td(
+                    ^.colSpan := columns.size,
+                    <.button(^.tpe := "button", ^.cls := "btn btn-sm btn-primary w-100",
+                      ^.onClick --> $.modStateAsync(_.copy(showAll = true)),
+                      "Mehr anzeigen..."
+                    )
+                  )
                 )
               }
             )
