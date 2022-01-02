@@ -1,6 +1,7 @@
 package de.th3falc0n.mkts
 
 import cats.effect.IO
+import cats.syntax.option._
 import de.th3falc0n.mkts.Models.{AddressList, AddressSource, IP}
 import japgolly.scalajs.react.ScalaComponent
 import japgolly.scalajs.react.ScalaComponent.BackendScope
@@ -13,13 +14,16 @@ import scala.concurrent.duration._
 import scala.util.chaining._
 
 object IpListComponent {
-  case class Props(selectedAddressList: AddressList,
-                   selectedAddressSource: Option[AddressSource])
+  case class Props(
+                    selectedAddressList: AddressList,
+                    selectedAddressSource: Option[AddressSource],
+                  )
 
   case class State(
                     entries: Option[Seq[IP]],
                     sorting: Option[Sorting[IP, _]],
-                    filter: String
+                    filter: String,
+                    selected: Option[IP],
                   ) {
     def toggleSorting[T](name: String, f: IP => T)(implicit ordering: Ordering[T]): State =
       copy(sorting = Sorting.toggle(sorting)(name, f)).tap(_.entriesSorted)
@@ -33,7 +37,7 @@ object IpListComponent {
   }
 
   object State {
-    val empty: State = State(None, None, "")
+    val empty: State = State(None, None, "", None)
   }
 
   class Backend($: BackendScope[Props, State]) {
@@ -104,7 +108,7 @@ object IpListComponent {
             )
           )
 
-          <.table(^.cls := "table",
+          <.table(^.cls := "table table-sm table-striped table-hover",
             <.thead(
               <.tr(columns.toVdomArray(_.header))
             ),
@@ -125,8 +129,13 @@ object IpListComponent {
                 )
               ),
               state.entriesSorted.toVdomArray { entry =>
+                val active = state.selected.contains(entry)
                 <.tr(
                   ^.key := entry.toString,
+                  ^.cls := s"selectable-table-row ${if (active) "active" else ""}",
+                  ^.onClick -->? Option.when(!active) {
+                    $.modStateAsync(_.copy(selected = entry.some))
+                  },
                   columns.toVdomArray(_.cell(entry))
                 )
               }

@@ -6,3 +6,15 @@
     user-select: none;
     cursor: pointer;
 }
+
+.selectable-table-row {
+    user-select: none;
+}
+
+.table > tbody > tr.active {
+    background-color: #0d6efd;
+}
+
+.table > tbody > tr.active > * {
+    color: #fff;
+}
