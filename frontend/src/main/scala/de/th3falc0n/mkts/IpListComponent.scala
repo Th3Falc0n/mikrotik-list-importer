@@ -122,11 +122,16 @@ object IpListComponent {
             )
           )
 
-          <.table(^.cls := "table table-sm table-striped table-hover",
+          <.table(^.cls := "table table-sm table-striped table-hover table-sticky-header",
             <.thead(
-              <.tr(columns.toVdomArray(_.header))
-            ),
-            <.tbody(
+              <.tr(columns.toVdomArray(_.header)),
+              <.tr(
+                <.td(
+                  ^.colSpan := columns.size,
+                  ^.backgroundColor := "currentColor",
+                  ^.padding := "2px 0 0 0",
+                )
+              ),
               <.tr(
                 <.td(
                   ^.colSpan := columns.size,
@@ -142,6 +147,8 @@ object IpListComponent {
                   )
                 )
               ),
+            ),
+            <.tbody(
               Option.when(state.entries.isEmpty) {
                 <.tr(
                   <.td(^.colSpan := columns.size,

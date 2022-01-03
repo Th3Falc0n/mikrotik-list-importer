@@ -11,6 +11,17 @@
     user-select: none;
 }
 
+.table.table-sticky-header {
+    border-spacing: 0;
+    border-collapse: separate;
+}
+
+.table.table-sticky-header > thead {
+    background-color: white;
+    position: sticky;
+    top: 0;
+}
+
 .table > tbody > tr.active {
     background-color: #0d6efd;
 }
