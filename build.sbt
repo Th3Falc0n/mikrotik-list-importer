@@ -24,6 +24,7 @@ lazy val common = crossProject(JVMPlatform, JSPlatform)
   .crossType(CrossType.Pure)
   .settings(
     libraryDependencies ++= Seq(
+      "de.lolhens" %%% "remote-io-http4s" % "0.0.1",
       "io.circe" %%% "circe-core" % V.circe,
       "io.circe" %%% "circe-generic" % V.circe,
       "io.circe" %%% "circe-parser" % V.circe,

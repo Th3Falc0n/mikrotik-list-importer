@@ -10,10 +10,10 @@ object Cache {
 
   def getOrElseUpdate[T](key: String, duration: Duration, value: => T): T = {
     cache.get(key) match {
-      case Some(v: Cached[T]) if !Instant.now.isAfter(v.time.plus(duration)) =>
+      case Some(v: Cached[T]@unchecked) if !Instant.now.isAfter(v.time.plus(duration)) =>
         v.value
 
-      case Some(v: Cached[T]) =>
+      case Some(v: Cached[T]@unchecked) =>
         val newValue = value
         cache -= key
         cache += (key -> Cached(newValue, Instant.now))

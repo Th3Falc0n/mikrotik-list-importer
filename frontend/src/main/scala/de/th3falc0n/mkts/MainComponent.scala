@@ -27,7 +27,7 @@ object MainComponent {
   class Backend($: BackendScope[Props, State]) {
     private def fetchState: IO[Unit] =
       for {
-        entries <- Api.lists
+        entries <- Api.lists(())
         _ <- $.modStateAsync(_.copy(entries = Some(entries)))
       } yield ()
 
