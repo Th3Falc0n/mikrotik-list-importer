@@ -107,7 +107,7 @@ object IpListComponent {
           }
 
           val columns = Seq[Col[_]](
-            Col(s"IP (${state.entriesSorted.size})", _.ip.host,
+            Col("IP", _.ip.host,
               e => <.th(^.key := "ip", ^.scope := "row", e.ip.toString),
               label = <.div(
                 ^.whiteSpace := "nowrap",
