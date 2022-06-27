@@ -26,6 +26,10 @@
     background-color: #0d6efd;
 }
 
+.table > tbody > tr.active *::selection {
+    background-color: navy;
+}
+
 .table > tbody > tr.active > * {
     color: #fff;
 }
