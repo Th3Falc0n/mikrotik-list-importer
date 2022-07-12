@@ -70,7 +70,7 @@ lazy val server = project
       "me.legrange" % "mikrotik" % "3.0.7",
       "com.typesafe" % "config" % "1.4.1",
       "ch.qos.logback" % "logback-classic" % "1.2.9",
-      "org.slf4j" % "slf4j-api" % "1.7.32",
+      "org.slf4j" % "slf4j-api" % "1.7.36",
       "de.lolhens" %% "http4s-spa" % "0.2.1",
       "org.http4s" %% "http4s-blaze-server" % V.http4s,
       "org.http4s" %% "http4s-dsl" % V.http4s
