@@ -1,5 +1,5 @@
 inThisBuild(Seq(
-  scalaVersion := "2.13.7",
+  scalaVersion := "2.13.8",
   name := "mikrotik-list-importer",
   version := "0.1",
 ))
@@ -66,11 +66,11 @@ lazy val server = project
     Compile / mainClass := Some("de.th3falc0n.mkts.Main"),
     assembly / mainClass := Some("de.th3falc0n.mkts.Main"),
     libraryDependencies ++= Seq(
-      "com.softwaremill.sttp.client3" %% "core" % "3.3.18",
+      "com.softwaremill.sttp.client3" %% "core" % "3.6.2",
       "me.legrange" % "mikrotik" % "3.0.7",
-      "com.typesafe" % "config" % "1.4.1",
+      "com.typesafe" % "config" % "1.4.2",
       "ch.qos.logback" % "logback-classic" % "1.2.9",
-      "org.slf4j" % "slf4j-api" % "1.7.32",
+      "org.slf4j" % "slf4j-api" % "1.7.36",
       "de.lolhens" %% "http4s-spa" % "0.2.1",
       "org.http4s" %% "http4s-blaze-server" % V.http4s,
       "org.http4s" %% "http4s-dsl" % V.http4s
