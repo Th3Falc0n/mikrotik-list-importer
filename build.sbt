@@ -69,7 +69,7 @@ lazy val server = project
       "com.softwaremill.sttp.client3" %% "core" % "3.3.18",
       "me.legrange" % "mikrotik" % "3.0.7",
       "com.typesafe" % "config" % "1.4.1",
-      "ch.qos.logback" % "logback-classic" % "1.2.9",
+      "ch.qos.logback" % "logback-classic" % "1.2.11",
       "org.slf4j" % "slf4j-api" % "1.7.32",
       "de.lolhens" %% "http4s-spa" % "0.2.1",
       "org.http4s" %% "http4s-blaze-server" % V.http4s,
