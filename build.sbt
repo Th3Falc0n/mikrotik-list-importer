@@ -1,5 +1,5 @@
 inThisBuild(Seq(
-  scalaVersion := "2.13.7",
+  scalaVersion := "2.13.8",
   name := "mikrotik-list-importer",
   version := "0.1",
 ))
