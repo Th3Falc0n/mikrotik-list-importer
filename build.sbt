@@ -68,7 +68,7 @@ lazy val server = project
     libraryDependencies ++= Seq(
       "com.softwaremill.sttp.client3" %% "core" % "3.3.18",
       "me.legrange" % "mikrotik" % "3.0.7",
-      "com.typesafe" % "config" % "1.4.1",
+      "com.typesafe" % "config" % "1.4.2",
       "ch.qos.logback" % "logback-classic" % "1.2.9",
       "org.slf4j" % "slf4j-api" % "1.7.36",
       "de.lolhens" %% "http4s-spa" % "0.2.1",
