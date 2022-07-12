@@ -66,7 +66,7 @@ lazy val server = project
     Compile / mainClass := Some("de.th3falc0n.mkts.Main"),
     assembly / mainClass := Some("de.th3falc0n.mkts.Main"),
     libraryDependencies ++= Seq(
-      "com.softwaremill.sttp.client3" %% "core" % "3.3.18",
+      "com.softwaremill.sttp.client3" %% "core" % "3.6.2",
       "me.legrange" % "mikrotik" % "3.0.7",
       "com.typesafe" % "config" % "1.4.1",
       "ch.qos.logback" % "logback-classic" % "1.2.9",
