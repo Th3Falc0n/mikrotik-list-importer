@@ -21,7 +21,7 @@ val V = new {
   val mikrotik = "3.0.7"
   val scalajsDom = "2.0.0"
   val scalajsReact = "2.0.0"
-  val sttpClient = "3.7.5"
+  val sttpClient = "3.7.6"
 }
 
 lazy val root = project.in(file("."))
