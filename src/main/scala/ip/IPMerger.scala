@@ -1,10 +1,12 @@
-package de.th3falc0n.mkts.ip
+package de.th3falc0n.mkts
+package ip
 
-import de.th3falc0n.mkts.Models.IP
+import Models.IP
+
 import org.slf4j.LoggerFactory
 
 object IPMerger {
-  val logger = LoggerFactory.getLogger("IPMerger")
+  private val logger = LoggerFactory.getLogger("IPMerger")
 
   def mergeIPs(in: Seq[IP], depth: Int = 31): Seq[IP] = {
     val distinct = in.distinct

@@ -1,7 +1,9 @@
-package de.th3falc0n.mkts.backend
+package de.th3falc0n.mkts
+package backend
 
-import de.th3falc0n.mkts.Main.config
-import de.th3falc0n.mkts.Models.IP
+import Main.config
+import Models.IP
+
 import me.legrange.mikrotik.ApiConnection
 import org.slf4j.{ Logger, LoggerFactory }
 
@@ -15,7 +17,10 @@ object MikrotikConnection {
     val api = ApiConnection.connect(config.getString("mikrotik.host"))
 
     logger.info("Logging in with user {}", config.getString("mikrotik.user"))
-    api.login(config.getString("mikrotik.user"), config.getString("mikrotik.password"))
+    api.login(
+      config.getString("mikrotik.user"),
+      config.getString("mikrotik.password")
+    )
 
     logger.info("Updating list {}", name)
     val ipsAsString = ips.map(_.toString)

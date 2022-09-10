@@ -1,6 +1,7 @@
-package de.th3falc0n.mkts.cache
+package de.th3falc0n.mkts
+package cache
 
-import java.time.{Duration, Instant}
+import java.time.{ Duration, Instant }
 import scala.collection.mutable
 
 object Cache {
@@ -10,7 +11,7 @@ object Cache {
 
   def getOrElseUpdate[T](key: String, duration: Duration, value: => T): T = {
     cache.get(key) match {
-      case Some(v: Cached[T]) if !Instant.now.isAfter(v.time.plus(duration)) =>
+      case Some(v: Cached[T]) if Duration.between(v.time, Instant.now).compareTo(duration) < 0 =>
         v.value
 
       case Some(v: Cached[T]) =>
