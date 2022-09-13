@@ -9,9 +9,9 @@ object Cache {
 
   private val cache = mutable.HashMap.empty[String, Cached[Any]]
 
-  def getOrElseUpdate[T](key: String, duration: Duration, value: => T): T = {
+  def getOrElseUpdate[T](key: String, value: => T): T = {
     cache.get(key) match {
-      case Some(v: Cached[T]) if Duration.between(v.time, Instant.now).compareTo(duration) < 0 =>
+      case Some(v: Cached[T]) if Duration.between(v.time, Instant.now).compareTo(Main.config.getDuration("cacheDuration")) < 0 =>
         v.value
 
       case Some(v: Cached[T]) =>

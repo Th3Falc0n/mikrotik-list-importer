@@ -26,7 +26,6 @@ object BackendImplicits {
 
       val ips = Cache.getOrElseUpdate(
         s"fetch-${addressSource.hashCode()}",
-        Duration.ofMinutes(15),
         BlazeClientBuilder[IO].resource.use { client =>
           val request = client.expect[String](uri)
 
