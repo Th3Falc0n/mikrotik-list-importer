@@ -48,6 +48,10 @@ object BackendImplicits {
             result.toSeq
           }
         }
+          .handleErrorWith { error =>
+            logger.error("Error while fetching", error)
+            IO.pure(Seq.empty)
+          }
       )
 
       ips
