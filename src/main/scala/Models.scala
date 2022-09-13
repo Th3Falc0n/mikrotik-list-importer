@@ -47,5 +47,4 @@ object Models {
       IP(host.split('.').map(_.toInt).reduceLeft(_ * 256 + _), netmask.toInt)
     }
   }
-
 }
