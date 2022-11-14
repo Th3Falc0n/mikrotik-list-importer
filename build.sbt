@@ -16,7 +16,7 @@ assembly / assemblyOption := (assembly / assemblyOption).value.withIncludeScala(
 
 libraryDependencies ++= Seq(
   "org.typelevel" %% "cats-core" % "2.9.0",
-  "org.typelevel" %% "cats-effect" % "3.3.14",
+  "org.typelevel" %% "cats-effect" % "3.4.0",
   "me.legrange" % "mikrotik" % "3.0.7",
   "com.typesafe" % "config" % "1.4.2",
   "org.slf4j" % "slf4j-api" % "2.0.3",
