@@ -19,7 +19,7 @@ libraryDependencies ++= Seq(
   "org.typelevel" %% "cats-effect" % "3.4.2",
   "me.legrange" % "mikrotik" % "3.0.7",
   "com.typesafe" % "config" % "1.4.2",
-  "org.slf4j" % "slf4j-api" % "2.0.5",
+  "org.slf4j" % "slf4j-api" % "2.0.6",
   "ch.qos.logback" % "logback-classic" % "1.4.5"
 )
 
