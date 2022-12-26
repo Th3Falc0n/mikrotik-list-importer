@@ -1,5 +1,5 @@
 inThisBuild(Seq(
-  scalaVersion := "2.13.8",
+  scalaVersion := "2.13.10",
   name := "mikrotik-list-importer",
   version := "0.1"
 ))
@@ -15,15 +15,15 @@ assembly / mainClass := Some("de.th3falc0n.mkts.Main")
 assembly / assemblyOption := (assembly / assemblyOption).value.withIncludeScala(false)
 
 libraryDependencies ++= Seq(
-  "org.typelevel" %% "cats-core" % "2.8.0",
-  "org.typelevel" %% "cats-effect" % "3.3.14",
+  "org.typelevel" %% "cats-core" % "2.9.0",
+  "org.typelevel" %% "cats-effect" % "3.4.3",
   "me.legrange" % "mikrotik" % "3.0.7",
   "com.typesafe" % "config" % "1.4.2",
-  "org.slf4j" % "slf4j-api" % "2.0.0",
-  "ch.qos.logback" % "logback-classic" % "1.4.1"
+  "org.slf4j" % "slf4j-api" % "2.0.6",
+  "ch.qos.logback" % "logback-classic" % "1.4.5"
 )
 
-val http4sVersion = "0.23.12"
+val http4sVersion = "0.23.13"
 
 libraryDependencies ++= Seq(
   "org.http4s" %% "http4s-blaze-server" % http4sVersion,
