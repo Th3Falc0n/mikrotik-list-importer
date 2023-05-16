@@ -16,14 +16,14 @@ assembly / assemblyOption := (assembly / assemblyOption).value.withIncludeScala(
 
 libraryDependencies ++= Seq(
   "org.typelevel" %% "cats-core" % "2.9.0",
-  "org.typelevel" %% "cats-effect" % "3.4.10",
+  "org.typelevel" %% "cats-effect" % "3.4.11",
   "me.legrange" % "mikrotik" % "3.0.7",
   "com.typesafe" % "config" % "1.4.2",
   "org.slf4j" % "slf4j-api" % "2.0.7",
   "ch.qos.logback" % "logback-classic" % "1.4.7"
 )
 
-val http4sVersion = "0.23.14"
+val http4sVersion = "0.23.15"
 
 libraryDependencies ++= Seq(
   "org.http4s" %% "http4s-blaze-server" % http4sVersion,
