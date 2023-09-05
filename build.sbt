@@ -1,5 +1,5 @@
 inThisBuild(Seq(
-  scalaVersion := "2.13.10",
+  scalaVersion := "2.13.11",
   name := "mikrotik-list-importer",
   version := "0.1"
 ))
@@ -15,11 +15,11 @@ assembly / mainClass := Some("de.th3falc0n.mkts.Main")
 assembly / assemblyOption := (assembly / assemblyOption).value.withIncludeScala(false)
 
 libraryDependencies ++= Seq(
-  "org.typelevel" %% "cats-core" % "2.9.0",
+  "org.typelevel" %% "cats-core" % "2.10.0",
   "org.typelevel" %% "cats-effect" % "3.5.0",
   "me.legrange" % "mikrotik" % "3.0.7",
   "com.typesafe" % "config" % "1.4.2",
-  "org.slf4j" % "slf4j-api" % "2.0.7",
+  "org.slf4j" % "slf4j-api" % "2.0.9",
   "ch.qos.logback" % "logback-classic" % "1.4.7"
 )
 
