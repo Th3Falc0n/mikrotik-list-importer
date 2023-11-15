@@ -23,7 +23,7 @@ libraryDependencies ++= Seq(
   "ch.qos.logback" % "logback-classic" % "1.4.11"
 )
 
-val http4sVersion = "0.23.15"
+val http4sVersion = "0.23.24"
 
 libraryDependencies ++= Seq(
   "org.http4s" %% "http4s-blaze-server" % http4sVersion,
