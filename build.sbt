@@ -20,7 +20,7 @@ libraryDependencies ++= Seq(
   "me.legrange" % "mikrotik" % "3.0.7",
   "com.typesafe" % "config" % "1.4.3",
   "org.slf4j" % "slf4j-api" % "2.0.9",
-  "ch.qos.logback" % "logback-classic" % "1.4.13"
+  "ch.qos.logback" % "logback-classic" % "1.4.14"
 )
 
 val http4sVersion = "0.23.15"
